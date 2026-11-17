@@ -32,10 +32,10 @@ ReZenOnance focuses on verified, high-throughput lossless backends:
 
 | Provider | Route | Delivery Protocol | Audio Fidelity | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **Studio Lossless Source** (Heisenberg) | `/g` | Direct Akamai CDN | **24-bit / 192 kHz FLAC** | `Operational` |
+| **Monochrome Lossless Core** | `/c` | Direct FLAC Stream API | **24-bit / 192 kHz FLAC** | `Operational` |
 | **Lossless Core Source** (Arcod) | `/f` | Direct Stream API | **FLAC Lossless** | `Operational` |
 | **Lossless Alternate** | `/e` | Remote Addon Proxy | DASH / FLAC | `Standby` |
-| **Monochrome Core** | `/c` | Direct FLAC | FLAC | `Offline (Monitored)` |
+| **Legacy Source** | `/a` | Remote Addon Proxy | FLAC / MP3 | `Standby` |
 
 *Inactive/dead legacy upstreams are excluded from the default racing loop to guarantee sub-500ms search latency.*
 
@@ -53,6 +53,8 @@ All manifests strictly declare `"allowDownloads": 0` for direct streaming compat
 | `/u/:userSlug/manifest.json` | `GET` | Isolated personal gateway manifest with rate-limiting context |
 | `/search?q=...&quality=LOSSLESS` | `GET` | Races active lossless backends; returns normalized tracks with signed IDs |
 | `/stream/:id?quality=LOSSLESS` | `GET` | Resolves signed opaque track ID to direct playable HTTPS stream URL |
+| `/admin` | `GET` | Master Admin Console (user endpoint revocation & provider management) |
+| `/api/admin/*` | `POST/GET` | Administrative management APIs (protected by master key) |
 | `/api/telemetry` | `GET` | Real-time upstream health status, latencies, and route availability |
 | `/health` | `GET` | Health check endpoint returning `{ ok: true }` |
 
@@ -110,12 +112,27 @@ Configure via `.env` or your hosting provider dashboard:
 PORT=3000
 HOST=0.0.0.0
 
-# Provider Strategy: multi (races Heisenberg & Arcod), qobuzdl, or stub
+# Provider Strategy: multi (races Monochrome & Arcod), qobuzdl, or stub
 QOBUZ_PROVIDER=multi
 
 # Upstream Endpoints
-HEISENBERG_BASE_URL=https://heisenbergbackaaahh.de.deplexo.com/a
 INSTABLE_BASE_URL=https://arcod.xyz
+MONOCHROME_BASE_URL=https://tracks.monochrome.st
+
+# Master Admin Key
+ADMIN_PASSWORD=ReZen#QuantumFLAC-2026!Vault
+
+# Direct OAuth Credentials (No Third-Party Dependencies)
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+DISCORD_CLIENT_ID=your-discord-client-id
+DISCORD_CLIENT_SECRET=your-discord-client-secret
+APP_BASE_URL=https://rezenonance.onrender.com
+
+# Database Settings (Optional - Seamless In-Memory Fallback if Supabase is Offline)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-supabase-key
+DISABLE_SUPABASE=false
 
 # Security & ID Signing Secret
 QOBUZ_ID_SECRET=change-me-in-production-to-a-secure-random-string
@@ -137,6 +154,16 @@ ReZenOnance provides standard addon manifest endpoints compatible with popular a
 - Custom players implementing addon manifest protocols
 
 Users can copy their private addon manifest URL or scan the dynamic QR code directly from the web portal.
+
+---
+
+## 🔑 Authentication & Zero-Friction Access
+
+ReZenOnance does not depend on external authentication services and offers three flexible options:
+1. **Instant Access (Skip Login)**: 1-click guest onboarding. Users can generate, customize, and copy personal addon URLs without signing in or providing an email address.
+2. **Direct Google OAuth**: Sign in directly with Google (`/api/auth/google/login`). Uses `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. Callback: `https://<domain>/api/auth/google/callback`.
+3. **Direct Discord OAuth**: Sign in directly with Discord (`/api/auth/discord/login`). Uses `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`. Callback: `https://<domain>/api/auth/discord/callback`.
+4. **Resilient Local Storage Fallback**: If Supabase is down, paused, or unreachable, ReZenOnance automatically trips its circuit breaker and runs on autonomous in-memory storage so links, playback, and quotas never fail.
 
 ---
 
