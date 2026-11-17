@@ -624,7 +624,7 @@ function registerAddon(prefix: string, provider: QobuzProvider, manifest: { id: 
   const route = (pathStr: string): string => `${prefix}${pathStr}` || '/';
 
   app.get(route('/manifest.json'), async (_request, reply) => reply.header('Cache-Control', 'public, max-age=3600, s-maxage=86400').send({
-    ...manifest, resources: ['search', 'stream'], allowDownloads: 1,
+    ...manifest, resources: ['search', 'stream'], allowDownloads: 0,
     settings: [{ key: 'quality', type: 'select', default: 'lossless', options: [
       { label: 'Lossless', value: 'lossless' }, { label: 'High', value: 'high' }, { label: 'Low', value: 'low' },
     ] }],
