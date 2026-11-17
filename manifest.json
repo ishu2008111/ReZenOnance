@@ -3,7 +3,7 @@
   "name": "Qobuz",
   "version": "1.0.0",
   "resources": ["search", "stream"],
-  "allowDownloads": 1,
+  "allowDownloads": 0,
   "settings": [
     {
       "key": "quality",
